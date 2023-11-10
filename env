@@ -1,4 +1,0 @@
-AZURE_SUBSCRIPTION_ID = '794eeba6-7c30-4735-a23f-20dc0d231103'
-AZURE_STORAGE_BLOB_URL= 'https://pythonazurestorage27992.blob.core.windows.net'
-AZURE_STORAGE_CONNECTION_STRING='DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=pythonazurestorage50387;AccountKey=IPyRldEwj4nt8Tiv0O54NzkGHKhNqG8xKIxDR7oT337xxZZQzHMpAGcPVeqW56UZ5aEM3N/mHZhU+AStsRhFXw=='
-PUBLIC_IP_ADDRESS='81.65.145.153'
