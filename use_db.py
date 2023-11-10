@@ -1,7 +1,7 @@
 import os
 import mysql.connector
 
-db_server_name = os.environ["DB_SERVER_NAME"]
+db_server_name = os.getenv("DB_SERVER_NAME", "databasetest")
 db_admin_name = os.getenv("DB_ADMIN_NAME", "azureuser")
 db_admin_password = os.getenv("DB_ADMIN_PASSWORD", "ChangePa$$w0rd24")
 
