@@ -1,24 +1,9 @@
-# coding: utf-8
-
-# -------------------------------------------------------------------------
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License. See License.txt in the project root for
-# license information.
-# --------------------------------------------------------------------------
-
 """
-FILE: datalake_samples_upload_download.py
+FILE: lab1.py
 DESCRIPTION:
-    This sample demonstrates:
-    * Set up a file system
-    * Create file
-    * Append data to the file
-    * Flush data to the file
-    * Get file properties
-    * Download the uploaded data
-    * Delete file system
+    Lab 1
 USAGE:
-    python datalake_samples_upload_download.py
+    python lab1.py
     Set the environment variables with your own values before running the sample:
     1) STORAGE_ACCOUNT_NAME - the storage account name
     2) STORAGE_ACCOUNT_KEY - the storage account key
@@ -37,6 +22,7 @@ load_dotenv()
 from azure.storage.filedatalake import (
     DataLakeServiceClient,
 )
+
 
 def upload_download_sample(filesystem_client, fichier, contenu):
     # create a file before writing content to it
@@ -90,6 +76,7 @@ def upload_download_sample(filesystem_client, fichier, contenu):
     #new_client.delete_file()
     # [END delete_file]
 
+
 # help method to provide random bytes to serve as file content
 def get_random_bytes(size):
     rand = random.Random()
@@ -109,6 +96,7 @@ def tmt(filesystem_client, fichier, contenu):
         #filesystem_client.delete_file_system()
         print('end')
 
+
 def detect_sous_dossiers(dossier_principal):
     # Initialiser une liste pour stocker les chemins des sous-dossiers
     chemins_sous_dossiers = []
@@ -124,6 +112,7 @@ def detect_sous_dossiers(dossier_principal):
         print(f'Sous-dossier trouvé : {chemin}')
 
     return chemins_sous_dossiers
+
 
 def upload_folder(dossier, filesystem_client):
      # Vérifie si le chemin est un dossier existant
@@ -167,6 +156,7 @@ def upload_folder(dossier, filesystem_client):
     else:
         print(f"Le dossier {dossier} n'existe pas.")
 
+
 def run(dossier):
 
     account_name = os.getenv('STORAGE_ACCOUNT_NAME', "")
@@ -183,10 +173,11 @@ def run(dossier):
 
     upload_folder(dossier, filesystem_client)
 
-    sous_dosssiers = detect_sous_dossiers(dossier)
+    sous_dossiers = detect_sous_dossiers(dossier)
 
-    for sous_dossier in sous_dosssiers:
+    for sous_dossier in sous_dossiers:
         upload_folder(sous_dossier, filesystem_client) 
+
 
 if __name__ == '__main__':
     dossier = 'data/'
