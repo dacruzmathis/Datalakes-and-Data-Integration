@@ -14,15 +14,97 @@ import random
 import pyarrow.parquet as pq
 import zipfile
 
+# Import the needed credential and management objects from the libraries.
+from azure.identity import AzureCliCredential
+from azure.mgmt.resource import ResourceManagementClient
+from azure.mgmt.storage import StorageManagementClient
+
 from dotenv import load_dotenv
 
 # Chargez les variables d'environnement depuis le fichier .env
 load_dotenv()
 
+# Acquire a credential object using CLI-based authentication.
+credential = AzureCliCredential()
+
+# Retrieve subscription ID from environment variable.
+subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
+
+# Obtain the management object for resources.
+resource_client = ResourceManagementClient(credential, subscription_id)
+
+storage_client = StorageManagementClient(credential, subscription_id)
+
 from azure.storage.filedatalake import (
     DataLakeServiceClient,
 )
 
+def create_rg():
+
+    rg_name =  f"PythonAzureExample-rg-{random.randint(1,100000):05}"
+
+    # Provision the resource group.
+    rg_result = resource_client.resource_groups.create_or_update(
+        rg_name, {"location": "centralus"}
+    )
+
+    print(
+        f"Provisioned resource group {rg_result.name} in \
+            the {rg_result.location} region"
+    )
+
+    return rg_result
+        
+def create_storage():
+
+    rg = create_rg()
+
+    RESOURCE_GROUP_NAME = rg.name
+    LOCATION = rg.location
+    STORAGE_ACCOUNT_NAME = f"pythonazurestorage{random.randint(1,100000):05}"
+
+    availability_result = storage_client.storage_accounts.check_name_availability(
+        { "name": STORAGE_ACCOUNT_NAME }
+    )
+
+    if not availability_result.name_available:
+        print(f"Storage name {STORAGE_ACCOUNT_NAME} is already in use. Try another name.")
+        exit()
+
+    # The name is available, so provision the account
+    poller = storage_client.storage_accounts.begin_create(RESOURCE_GROUP_NAME, STORAGE_ACCOUNT_NAME,
+        {
+            "location" : LOCATION,
+            "kind": "StorageV2",
+            "sku": {"name": "Standard_LRS"}
+        }
+    )
+
+    # Long-running operations return a poller object; calling poller.result()
+    # waits for completion.
+    account_result = poller.result()
+    print(f"Provisioned storage account {account_result.name}")
+
+
+    # Step 3: Retrieve the account's primary access key and generate a connection string.
+    keys = storage_client.storage_accounts.list_keys(RESOURCE_GROUP_NAME, STORAGE_ACCOUNT_NAME)
+
+    print(f"Primary key for storage account: {keys.keys[0].value}")
+
+    conn_string = f"DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName={STORAGE_ACCOUNT_NAME};AccountKey={keys.keys[0].value}"
+
+    print(f"Connection string: {conn_string}")
+
+    # Step 4: Provision the blob container in the account (this call is synchronous)
+    CONTAINER_NAME = f"blob-container-{random.randint(1,100000):05}"
+    container = storage_client.blob_containers.create(RESOURCE_GROUP_NAME, STORAGE_ACCOUNT_NAME, CONTAINER_NAME, {})
+
+    # The fourth argument is a required BlobContainer object, but because we don't need any
+    # special values there, so we just pass empty JSON.
+
+    print(f"Provisioned blob container {container.name}")
+
+    return STORAGE_ACCOUNT_NAME, keys.keys[0].value, container.name
 
 def upload_download_sample(filesystem_client, fichier, contenu):
     # create a file before writing content to it
@@ -60,7 +142,7 @@ def upload_download_sample(filesystem_client, fichier, contenu):
     if file_content == downloaded_bytes:
         print("The downloaded data is equal to the data uploaded.")
     else:
-        print("Something went wrong.")
+        print("ok.")
 
     # Rename the file
     # [START rename_file]
@@ -159,17 +241,16 @@ def upload_folder(dossier, filesystem_client):
 
 def run(dossier):
 
-    account_name = os.getenv('STORAGE_ACCOUNT_NAME', "")
-    account_key = os.getenv('STORAGE_ACCOUNT_KEY', "")
+    account_name, account_key, container = create_storage()
 
     # set up the service client with the credentials from the environment variables
     service_client = DataLakeServiceClient(account_url="{}://{}.dfs.core.windows.net".format(
         "https",
         account_name
-    ), credential=account_key)
+    ), credential=account_key,)
 
     # create the filesystem
-    filesystem_client = service_client.create_file_system(file_system=dossier)
+    filesystem_client = service_client.get_file_system_client(file_system=container)
 
     upload_folder(dossier, filesystem_client)
 
