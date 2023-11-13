@@ -1,4 +1,5 @@
 # Datalakes
-# Da Cruz Mathis
-# Harmantepe Melis
-# Bouchet Ulysse
+## Lab 1
+* Da Cruz Mathis
+* Harmantepe Melis
+* Bouchet Ulysse
