@@ -1,0 +1,7 @@
+AMAZON.csv
+APPLE.csv
+FACEBOOK.csv
+GOOGLE.csv
+MICROSOFT.csv
+TESLA.csv
+ZOOM.csv
